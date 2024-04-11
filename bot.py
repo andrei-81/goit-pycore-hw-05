@@ -1,70 +1,25 @@
 
+def input_error(func):
+    def inner(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except IndexError:
+            return "Enter the argument for the command"
+        except ValueError:
+            return "Give me name and phone please."
+        except KeyError: 
+            return "Contact not found"
 
+    return inner
 
-# Завдання 4
-
-# Доробіть консольного бота помічника з попереднього домашнього завдання та додайте обробку помилок за допомоги декораторів.
-
-
-
-# Вимоги до завдання:
-
-# Всі помилки введення користувача повинні оброблятися за допомогою декоратора input_error. Цей декоратор відповідає за повернення користувачеві повідомлень типу "Enter user name", "Give me name and phone please" тощо.
-# Декоратор input_error повинен обробляти винятки, що виникають у функціях - handler і це винятки: KeyError, ValueError, IndexError. Коли відбувається виняток декоратор повинен повертати відповідну відповідь користувачеві. Виконання програми при цьому не припиняється.
-
-
-# Рекомендації для виконання:
-
-# В якості прикладу додамо декоратор input_error для обробки помилки ValueError
-
-# def input_error(func):
-#     def inner(*args, **kwargs):
-#         try:
-#             return func(*args, **kwargs)
-#         except ValueError:
-#             return "Give me name and phone please."
-
-#     return inner
-
-
-
-# Та обгорнемо декоратором функцію add_contact нашого бота, щоб ми почали обробляти помилку ValueError.
-
-# @input_error
-# def add_contact(args, contacts):
-#     name, phone = args
-#     contacts[name] = phone
-#     return "Contact added."
-
-
-
-# Вам треба додати обробники до інших команд (функцій), та додати в декоратор обробку винятків інших типів з відповідними повідомленнями.
-
-
-
-# Критерії оцінювання:
-
-# Наявність декоратора input_error, який обробляє помилки введення користувача для всіх команд.
-# Обробка помилок типу KeyError, ValueError, IndexError у функціях за допомогою декоратора input_error.
-# Кожна функція для обробки команд має власний декоратор input_error, який обробляє відповідні помилки і повертає відповідні повідомлення про помилку.
-# Коректна реакція бота на різні команди та обробка помилок введення без завершення програми.
-
-
-# Приклад використання:
-
-# При запуску скрипту діалог з ботом повинен бути схожим на цей.
-
-# Enter a command: add
-# Enter the argument for the command
-# Enter a command: add Bob
-# Enter the argument for the command
-# Enter a command: add Jime 0501234356
-# Contact added.
-# Enter a command: phone
-# Enter the argument for the command
-# Enter a command: all
-# Jime: 0501234356 
-# Enter a command:
+@input_error
+def add_contact(args, contacts):
+    name, phone = args
+    if name not in contacts:
+        contacts[name] = phone
+        return "Contact added."
+    else: 
+        return f"Contact {name} already exists"
 
 
 def parse_input(user_input):
@@ -72,16 +27,8 @@ def parse_input(user_input):
     cmd = cmd.strip().lower()
     return cmd, *args
 
-def add_contact(args, contacts):
-    if len(args) < 2: 
-        return "Try again. Add name and phone as parameters"
-    name, phone = args
-    contacts[name] = phone
-    return "Contact added."
-
+@input_error
 def change_contact(args, contacts: dict):
-    if len(args) < 2: 
-        return "Try again. Add name and phone as parameters"
     name, phone = args
     if name in contacts:
         contacts[name] = phone
@@ -89,9 +36,8 @@ def change_contact(args, contacts: dict):
     else:
         return f"contact {name} not found" 
 
+@input_error
 def show_phone(args, contacts):
-    if len(args) < 1: 
-        return "Try again. Add name as parameter"
     name = args[0]
     if name in contacts:
         return f"{contacts[name]} {name}"
@@ -105,11 +51,12 @@ def show_all(contacts):
 def main():
     contacts = {}
     print("Welcome to the assistant bot!")
+    print("type exit or close to exit")
+
     while True:
         user_input = input("Enter a command: ")
         command, *args = parse_input(user_input)
-        print("type exit or close to exit")
-
+        
         if command in ["close", "exit"]:
             print("Good bye!")
             break
